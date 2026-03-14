@@ -22,9 +22,12 @@ target
 #.idea/
 
 /out_hayazip
+/out_unzip
 /out_unzip2
+/demo_extracted_files
 /*.zip
 /*.bin
+/test_output.txt
 /tests/fixtures
 /venv
 .env
