@@ -2,15 +2,24 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
   workflow_dispatch:
 
 jobs:
-  verify:
+  meta:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      should_release: ${{ steps.version.outputs.should_release }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
@@ -31,18 +40,38 @@ jobs:
                   f"Version mismatch: pyproject.toml={pyproject_version}, Cargo.toml={cargo_version}"
               )
 
-          ref_name = os.environ.get("GITHUB_REF_NAME", "")
-          if ref_name.startswith("v") and ref_name[1:] != pyproject_version:
-              raise SystemExit(
-                  f"Tag version {ref_name} does not match package version {pyproject_version}"
-              )
-
           print(f"Validated release version {pyproject_version}")
+          PY
+      - id: version
+        name: Determine release plan
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          import subprocess
+          import tomllib
+
+          with open("pyproject.toml", "rb") as f:
+              version = tomllib.load(f)["project"]["version"]
+
+          tag = f"v{version}"
+          subprocess.run(["git", "fetch", "--tags", "--force"], check=True)
+          tag_exists = subprocess.run(
+              ["git", "rev-parse", "-q", "--verify", f"refs/tags/{tag}"],
+              check=False,
+              capture_output=True,
+              text=True,
+          ).returncode == 0
+          force_release = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+
+          print(f"version={version}")
+          print(f"tag={tag}")
+          print(f"should_release={'true' if force_release or not tag_exists else 'false'}")
           PY
 
   linux:
     runs-on: ubuntu-latest
-    needs: verify
+    needs: meta
+    if: github.event_name == 'pull_request' || needs.meta.outputs.should_release == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -63,7 +92,8 @@ jobs:
 
   macos:
     runs-on: macos-latest
-    needs: verify
+    needs: meta
+    if: github.event_name == 'pull_request' || needs.meta.outputs.should_release == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -83,7 +113,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
-    needs: verify
+    needs: meta
+    if: github.event_name == 'pull_request' || needs.meta.outputs.should_release == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -104,10 +135,14 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [verify, linux, macos, windows]
+    needs: [meta, linux, macos, windows]
+    if: github.event_name != 'pull_request' && needs.meta.outputs.should_release == 'true'
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           pattern: dist-*
@@ -120,8 +155,20 @@ jobs:
           args: --skip-existing dist/*
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Create and push release tag
+        run: |
+          git fetch --tags --force
+          if git rev-parse -q --verify "refs/tags/${{ needs.meta.outputs.tag }}" >/dev/null; then
+            echo "Tag ${{ needs.meta.outputs.tag }} already exists"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${{ needs.meta.outputs.tag }}"
+          git push origin "${{ needs.meta.outputs.tag }}"
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: ${{ needs.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: dist/*

@@ -15,7 +15,7 @@ impl ZipArchive {
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(path)?;
         let mmap = unsafe { Mmap::map(&file)? };
-        
+
         let (cd_offset, num_entries) = Self::find_eocd(&mmap)?;
         let entries = Self::parse_central_directory(&mmap, cd_offset, num_entries)?;
         

@@ -4,10 +4,16 @@ use thiserror::Error;
 pub enum HayazipError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
     #[error("Invalid ZIP format: {0}")]
     InvalidFormat(&'static str),
+    #[error("Archive is too large: {0}")]
+    ArchiveTooLarge(&'static str),
     #[error("Unsupported compression method: {0}")]
     UnsupportedCompression(u16),
+    #[error("Compression error: {0}")]
+    Compression(String),
     #[error("Decompression error: {0}")]
     Decompression(String),
     #[error("CRC32 mismatch (expected {expected:08x}, got {actual:08x})")]

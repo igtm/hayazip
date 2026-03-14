@@ -9,7 +9,7 @@ use crc32fast::Hasher;
 impl ZipArchive {
     pub fn extract_all<P: AsRef<Path>>(&self, dest: P) -> Result<()> {
         let dest = dest.as_ref();
-        
+
         // Use try_for_each_init to initialize a Decompressor per worker thread
         self.entries().par_iter().try_for_each_init(
             || Decompressor::new(),

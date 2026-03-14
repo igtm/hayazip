@@ -1,15 +1,16 @@
 # Hayazip
 [**日本語**](README_JA.md) | **English**
 
-🚀 **Blazing Fast, Multi-Threaded SIMD ZIP Extraction Library for Rust & Python**
+🚀 **Blazing Fast, Multi-Threaded SIMD ZIP Library for Rust & Python**
 
-`hayazip` is an ultra-fast ZIP archive extraction library designed from the ground up to leverage modern hardware capabilities. It combines memory-mapped I/O, SIMD-accelerated decompression (via `libdeflater`), and thread-pool-based parallel extraction (via `rayon`) to achieve up to **10x faster extraction latency** compared to the standard Unix `unzip` utility.
+`hayazip` is an ultra-fast ZIP archive library designed from the ground up to leverage modern hardware capabilities. It combines memory-mapped I/O, SIMD-accelerated compression and decompression (via `libdeflater`), and thread-pool-based parallelism (via `rayon`) to accelerate both ZIP extraction and ZIP creation.
 
 ## Features
 - **Zero-Copy Parsers:** Uses `memmap2` to map the ZIP file directly into memory, skipping expensive kernel-to-user-space copies.
-- **SIMD Optimized Decompression:** Powered by `libdeflater` to leverage AVX2, AVX-512, or NEON depending on the architecture.
-- **Multi-threaded Extraction:** Uses `rayon` in a Fork-Join model to decompress and extract independent files in parallel securely.
+- **SIMD Optimized Compression and Decompression:** Powered by `libdeflater` to leverage AVX2, AVX-512, or NEON depending on the architecture.
+- **Multi-threaded ZIP Creation and Extraction:** Uses `rayon` to process independent files in parallel.
 - **Hardware-accelerated CRC32:** Validates integrity using hardware instructions through `crc32fast`.
+- **Low-footprint Archive Writing:** Spools compressed members to temporary files instead of holding the full archive in memory.
 - **Cross-platform Python Bindings:** Built with PyO3 for easy, out-of-the-box integration in any Python environment.
 
 ## Python Quick Start
@@ -23,14 +24,15 @@ pip install hayazip
 ```
 
 ### Usage
-Extracting archives in Python is easy and significantly faster than the standard `zipfile` module:
+Creating and extracting archives in Python is straightforward:
 ```python
 import hayazip
 
-archive_path = "huge_archive.zip"
+source_dir = "project_files"
+archive_path = "project_files.zip"
 output_dir = "extracted_files"
 
-# Extracts the entire archive fully utilizing all CPU cores
+hayazip.create_zip(source_dir, archive_path)
 hayazip.extract_zip(archive_path, output_dir)
 print("Done!")
 ```
@@ -40,16 +42,19 @@ print("Done!")
 Add `hayazip` to your `Cargo.toml`:
 ```toml
 [dependencies]
-hayazip = "0.1.4"
+hayazip = "0.2.0"
 ```
 
 ### Usage
 ```rust
-use hayazip::extract;
+use hayazip::{create_zip, extract};
 
 fn main() {
-    let archive_path = "huge_archive.zip";
+    let source_dir = "project_files";
+    let archive_path = "project_files.zip";
     let output_dir = "extracted_files";
+
+    create_zip(source_dir, archive_path).expect("Archive creation failed");
 
     if let Err(e) = extract(archive_path, output_dir) {
         eprintln!("Extraction failed: {}", e);
@@ -60,9 +65,7 @@ fn main() {
 ```
 
 ## Benchmarks
-Extracting a 50MB realistically compressed test archive with 10 files (5MB each):
-- `unzip` (Unix standard): ~162ms
-- `hayazip`: **~16ms (10x faster)**
+On modern CPUs, `hayazip` uses `libdeflater` for SIMD-accelerated DEFLATE and `rayon` for parallel file processing. Archive creation writes members with bounded worker parallelism and a temporary spool to keep memory usage predictable while still saturating multiple cores.
 
 ## Build from Source (Python)
 To compile from source and install into your local Python environment:

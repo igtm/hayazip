@@ -7,12 +7,12 @@ fn main() {
         eprintln!("Usage: {} <archive.zip> <out_dir>", args[0]);
         std::process::exit(1);
     }
-    
+
     let archive_path = &args[1];
     let out_dir = &args[2];
-    
+
     let start = Instant::now();
-    
+
     match extract(archive_path, out_dir) {
         Ok(_) => {
             let duration = start.elapsed();

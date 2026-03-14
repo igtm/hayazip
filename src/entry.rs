@@ -1,7 +1,7 @@
 use crate::error::{Result, HayazipError};
 use byteorder::{LittleEndian, ReadBytesExt};
-use std::io::Cursor;
 use memmap2::Mmap;
+use std::io::Cursor;
 
 #[derive(Debug, Clone)]
 pub struct ZipEntry {
@@ -22,7 +22,7 @@ impl ZipEntry {
         let offset = self.local_header_offset;
         let max_len = std::cmp::min(offset + 30, mmap.len());
         let mut cursor = Cursor::new(&mmap[offset..max_len]); // Safely slice
-        
+
         let signature = match cursor.read_u32::<LittleEndian>() {
             Ok(s) => s,
             Err(e) => {
@@ -44,14 +44,14 @@ impl ZipEntry {
         let offset = self.data_offset(mmap)?;
         Ok(&mmap[offset..offset + self.compressed_size])
     }
-    
+
     pub fn is_unix_symlink(&self) -> bool {
         // Unix mode is in upper 16 bits of external_attr
         // Mode 0120000 means symbolic link
         let mode = self.external_attr >> 16;
         (mode & 0o170000) == 0o120000
     }
-    
+
     pub fn unix_mode(&self) -> Option<u32> {
         let mode = self.external_attr >> 16;
         if mode != 0 {

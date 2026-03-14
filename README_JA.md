@@ -1,15 +1,16 @@
 # Hayazip
 **日本語** | [**English**](README.md)
 
-🚀 **超高速・マルチスレッド・SIMD対応のZIP展開ライブラリ (Rust & Python)**
+🚀 **超高速・マルチスレッド・SIMD対応のZIPライブラリ (Rust & Python)**
 
-`hayazip`（ハヤジップ）は、最新のハードウェア性能を限界まで引き出すためにゼロから設計された超高速なZIP展開ライブラリです。Memory Mapped I/Oによるゼロコピー読み取り、`libdeflater`によるSIMD最適化された展開、および`rayon`によるスレッドプールを用いた並列抽出処理を組み合わせることで、標準のUnix `unzip` コマンドと比較して **最大10倍の高速化** を実現しています。
+`hayazip`（ハヤジップ）は、最新のハードウェア性能を引き出すために設計された超高速なZIPライブラリです。Memory Mapped I/Oによるゼロコピー読み取り、`libdeflater` による SIMD 最適化された圧縮・展開、および `rayon` による並列処理を組み合わせ、ZIP の作成と展開を高速に行えます。
 
 ## 主な特徴
 - **ゼロコピーな解析:** `memmap2` を用いてZIPファイル全体をメモリにマップし、カーネル・ユーザー空間間の不要なコピーを回避します。
-- **SIMD最適化された展開:** `libdeflater` をバックエンドに採用し、AVX2, AVX-512, NEON といった各アーキテクチャの命令を利用した超高速なDeflate展開を行います。
-- **マルチスレッド完全並列展開:** `rayon` のFork-Joinモデルを用いて、互いに依存関係のないアーカイブ内の各ファイルを全CPUコアをフル活用して並行処理します。
+- **SIMD最適化された圧縮・展開:** `libdeflater` をバックエンドに採用し、AVX2, AVX-512, NEON といった各アーキテクチャの命令を活用します。
+- **マルチスレッド並列処理:** `rayon` により、独立したファイルを並列に圧縮・展開します。
 - **ハードウェアによる高速CRC32:** `crc32fast` を用いて、展開時の整合性検証のオーバーヘッドを最小限に抑えます。
+- **低フットプリントなZIP生成:** 圧縮済みデータを一時ファイルへスプールし、アーカイブ全体をメモリに保持せずに書き込みます。
 - **クロスプラットフォームなPythonバインディング:** PyO3を用いて構築され、Pythonからも簡単に呼び出せるように設計されています。
 
 ## Pythonからの使い方 (Quick Start)
@@ -23,14 +24,15 @@ pip install hayazip
 ```
 
 ### 使い方
-標準ライブラリの `zipfile` モジュールよりも圧倒的に高速に展開できます：
+ZIP の作成と展開をシンプルに行えます：
 ```python
 import hayazip
 
-archive_path = "huge_archive.zip"
+source_dir = "project_files"
+archive_path = "project_files.zip"
 output_dir = "extracted_files"
 
-# CPUの全コアを使用してアーカイブを展開します
+hayazip.create_zip(source_dir, archive_path)
 hayazip.extract_zip(archive_path, output_dir)
 print("展開完了！")
 ```
@@ -40,16 +42,19 @@ print("展開完了！")
 `Cargo.toml` に追加します:
 ```toml
 [dependencies]
-hayazip = "0.1.4"
+hayazip = "0.2.0"
 ```
 
 ### 使い方
 ```rust
-use hayazip::extract;
+use hayazip::{create_zip, extract};
 
 fn main() {
-    let archive_path = "huge_archive.zip";
+    let source_dir = "project_files";
+    let archive_path = "project_files.zip";
     let output_dir = "extracted_files";
+
+    create_zip(source_dir, archive_path).expect("ZIP作成に失敗しました");
 
     if let Err(e) = extract(archive_path, output_dir) {
         eprintln!("エラーが発生しました: {}", e);
@@ -59,10 +64,8 @@ fn main() {
 }
 ```
 
-## ベンチマーク
-10個の5MBファイル（合計50MB）が圧縮されたZIPファイルを用いた展開テスト:
-- `unzip` (Unix標準コマンド): 約162ms
-- `hayazip`: **約16ms (およそ10倍の高速化)**
+## 実装方針
+`hayazip` は `libdeflater` による SIMD 対応 DEFLATE と `rayon` による並列ファイル処理を使います。ZIP 生成時は圧縮済みメンバーを一時スプールし、メモリ使用量を抑えながら複数コアを活用します。
 
 ## ソースからのビルド (Python環境向け)
 ソースコードからローカルのPython環境にビルド・インストールする場合：
