@@ -59,7 +59,7 @@ impl ZipArchive {
         let mut entries = Vec::with_capacity(num_entries);
         let mut cursor = Cursor::new(&mmap[offset..]);
         
-        for i in 0..num_entries {
+        for _ in 0..num_entries {
             let signature = cursor.read_u32::<LittleEndian>()?;
             if signature != 0x02014B50 {
                 return Err(HayazipError::InvalidFormat("Invalid Central Directory signature"));
@@ -69,8 +69,8 @@ impl ZipArchive {
             let _version_needed = cursor.read_u16::<LittleEndian>()?;
             let flags = cursor.read_u16::<LittleEndian>()?;
             let method = cursor.read_u16::<LittleEndian>()?;
-            let last_mod_time = cursor.read_u16::<LittleEndian>()?;
-            let last_mod_date = cursor.read_u16::<LittleEndian>()?;
+            let _last_mod_time = cursor.read_u16::<LittleEndian>()?;
+            let _last_mod_date = cursor.read_u16::<LittleEndian>()?;
             let crc32 = cursor.read_u32::<LittleEndian>()?;
             let compressed_size = cursor.read_u32::<LittleEndian>()?;
             let uncompressed_size = cursor.read_u32::<LittleEndian>()?;

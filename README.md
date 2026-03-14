@@ -15,8 +15,10 @@
 ## Python Quick Start
 
 ### Installation
-You can install `hayazip` directly from PyPI (binary wheels available for Linux, macOS, and Windows):
+You can install `hayazip` directly from PyPI with `uv` or `pip`. Prebuilt `abi3` wheels are published for CPython 3.8+ on Linux, macOS, and Windows, and a source distribution is published as a fallback:
 ```bash
+uv add hayazip
+# or
 pip install hayazip
 ```
 
@@ -38,7 +40,7 @@ print("Done!")
 Add `hayazip` to your `Cargo.toml`:
 ```toml
 [dependencies]
-hayazip = "0.1.0"
+hayazip = "0.1.4"
 ```
 
 ### Usage

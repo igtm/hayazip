@@ -1,5 +1,5 @@
 use std::process::Command;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::fs;
 use tempfile::TempDir;
 

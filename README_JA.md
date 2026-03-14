@@ -15,8 +15,10 @@
 ## Pythonからの使い方 (Quick Start)
 
 ### インストール
-PyPIからインストール可能です（Linux, macOS, Windows用のビルド済みWheelが提供されます）。
+`uv` または `pip` で PyPI からインストールできます。CPython 3.8+ 向けの `abi3` wheel を Linux / macOS / Windows 向けに公開し、あわせてソース配布物も公開します。
 ```bash
+uv add hayazip
+# または
 pip install hayazip
 ```
 
@@ -38,7 +40,7 @@ print("展開完了！")
 `Cargo.toml` に追加します:
 ```toml
 [dependencies]
-hayazip = "0.1.0"
+hayazip = "0.1.4"
 ```
 
 ### 使い方

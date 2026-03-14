@@ -4,15 +4,24 @@ build-backend = "maturin"
 
 [project]
 name = "hayazip"
-version = "0.1.0"
+version = "0.1.4"
 description = "Blazing fast, multi-threaded SIMD ZIP extraction library"
 readme = "README.md"
 authors = [{ name = "Antigravity", email = "antigravity@example.com" }]
 license = { text = "MIT" }
 requires-python = ">=3.8"
 classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Operating System :: OS Independent",
 ]
+
+[tool.maturin]
+bindings = "pyo3"
