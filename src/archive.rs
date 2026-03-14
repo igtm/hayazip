@@ -56,12 +56,10 @@ impl ZipArchive {
     }
 
     fn parse_central_directory(mmap: &[u8], offset: usize, num_entries: usize) -> Result<Vec<ZipEntry>> {
-        eprintln!("parse_central_directory: offset={}, num_entries={}, mmap.len()={}", offset, num_entries, mmap.len());
         let mut entries = Vec::with_capacity(num_entries);
         let mut cursor = Cursor::new(&mmap[offset..]);
         
         for i in 0..num_entries {
-            eprintln!("Reading entry {}, cursor pos: {}", i, cursor.position());
             let signature = cursor.read_u32::<LittleEndian>()?;
             if signature != 0x02014B50 {
                 return Err(HayazipError::InvalidFormat("Invalid Central Directory signature"));

@@ -20,14 +20,12 @@ impl ZipEntry {
     /// Read the local file header and return the start offset of the actual compressed data
     pub fn data_offset(&self, mmap: &Mmap) -> Result<usize> {
         let offset = self.local_header_offset;
-        eprintln!("data_offset for {}, offset={}", self.filename, offset);
         let max_len = std::cmp::min(offset + 30, mmap.len());
         let mut cursor = Cursor::new(&mmap[offset..max_len]); // Safely slice
         
         let signature = match cursor.read_u32::<LittleEndian>() {
             Ok(s) => s,
             Err(e) => {
-                eprintln!("Error reading local header signature for {} at {}: {:?}", self.filename, offset, e);
                 return Err(e.into());
             }
         };
