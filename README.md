@@ -93,6 +93,22 @@ fn main() {
 
 Use `preflight` / `preflight_bytes` in Rust or `preflight_zip` / `preflight_zip_bytes` in Python if you want the validated path list without extracting yet.
 
+## Compression Method Support
+Current extraction support:
+
+- `0` (`Stored` / no compression)
+- `8` (`Deflate`)
+
+Current archive creation support:
+
+- `Stored` for directories, symlinks, empty files, and files where compression is not beneficial
+- `Deflate` for regular files when it reduces size
+
+Currently unsupported for extraction and creation:
+
+- any other ZIP compression method, including `Deflate64` (`9`), `BZIP2` (`12`), `LZMA` (`14`), `PPMd` (`98`), and `Zstandard` (`93`)
+- encrypted ZIP entries
+
 ## Benchmarks
 On modern CPUs, `hayazip` uses `libdeflater` for SIMD-accelerated DEFLATE and `rayon` for parallel file processing. Archive creation writes members with bounded worker parallelism and a temporary spool to keep memory usage predictable while still saturating multiple cores.
 

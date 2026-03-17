@@ -94,6 +94,22 @@ fn main() {
 
 展開前に検査結果だけ欲しい場合は、Rust では `preflight` / `preflight_bytes`、Python では `preflight_zip` / `preflight_zip_bytes` を使ってください。
 
+## 圧縮方式の対応状況
+現在の展開対応:
+
+- `0` (`Stored` / 無圧縮)
+- `8` (`Deflate`)
+
+現在のアーカイブ作成対応:
+
+- ディレクトリ、シンボリックリンク、空ファイル、圧縮しても得をしないファイルは `Stored`
+- サイズ削減できる通常ファイルは `Deflate`
+
+現在未対応:
+
+- `Deflate64` (`9`), `BZIP2` (`12`), `LZMA` (`14`), `PPMd` (`98`), `Zstandard` (`93`) を含む、上記以外の ZIP compression method
+- 暗号化された ZIP entry
+
 ## 実装方針
 `hayazip` は `libdeflater` による SIMD 対応 DEFLATE と `rayon` による並列ファイル処理を使います。ZIP 生成時は圧縮済みメンバーを一時スプールし、メモリ使用量を抑えながら複数コアを活用します。
 
