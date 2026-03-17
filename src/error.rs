@@ -18,6 +18,10 @@ pub enum HayazipError {
     Decompression(String),
     #[error("CRC32 mismatch (expected {expected:08x}, got {actual:08x})")]
     CrcMismatch { expected: u32, actual: u32 },
+    #[error("Unsafe archive entry path: {0}")]
+    UnsafePath(String),
+    #[error("Archive entry conflict: {0}")]
+    EntryConflict(String),
 }
 
 pub type Result<T> = std::result::Result<T, HayazipError>;
