@@ -55,7 +55,7 @@ hayazip.extract_zip_bytes(pptx_bytes, "workdir/unpacked")
 `Cargo.toml` に追加します:
 ```toml
 [dependencies]
-hayazip = "0.2.0"
+hayazip = "0.3.0"
 ```
 
 ### 使い方

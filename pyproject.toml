@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "hayazip"
-version = "0.2.0"
+version = "0.3.0"
 description = "Blazing fast, multi-threaded SIMD ZIP library"
 readme = "README.md"
 authors = [{ name = "Antigravity", email = "antigravity@example.com" }]
